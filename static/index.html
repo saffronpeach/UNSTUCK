@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#141319">
+  <title>UNSTUCK — One step at a time.</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="UNSTUCK home"><span class="brand-mark" aria-hidden="true">↗</span> UNSTUCK<span class="brand-dot">.</span></a>
+    <span class="tagline">One step at a time.</span>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="welcome">
+      <div class="eyebrow"><span aria-hidden="true"></span> A LITTLE CLARITY. A SMALL BEGINNING.</div>
+      <h1 id="welcome">What's keeping<br>you <span>stuck?</span></h1>
+      <p>You don't need the whole plan.<br class="mobile-break"> Just a place to start.</p>
+    </section>
+    <section class="input-card" aria-label="Find your next step">
+      <form id="thought-form" novalidate>
+        <div class="field-heading"><label for="thoughts">LET IT OUT</label><span>No need to organize it.</span></div>
+        <textarea id="thoughts" maxlength="2000" rows="5" placeholder="I have so much to do and don't know where to start..." aria-describedby="input-note error"></textarea>
+        <div class="input-bottom"><span id="input-note">A messy thought is a perfectly good start.</span><span id="character-count" aria-hidden="true">0 / 2000</span></div>
+        <button id="submit" type="submit" class="primary">Help me get unstuck <span aria-hidden="true">↗</span></button>
+      </form>
+      <p class="privacy">No accounts. No saved history. Just this moment.<br><span>Your thoughts are sent to Gemini to find your next step.</span></p>
+    </section>
+    <p id="loading" class="status" role="status" hidden>Finding a small place to begin<span class="loading-dots" aria-hidden="true">…</span></p>
+    <p id="error" class="error" role="alert" hidden></p>
+    <section id="result" class="result-card" aria-labelledby="action-heading" hidden>
+      <div class="section-kicker"><span class="spark" aria-hidden="true">✧</span> YOUR NEXT SMALL STEP</div>
+      <p id="acknowledgment" class="acknowledgment"></p>
+      <h2 id="action-heading"></h2>
+      <p id="recommendation" class="recommendation"></p>
+      <div id="focus-setup" class="focus-setup">
+        <label for="duration">Make a little space</label>
+        <select id="duration" aria-label="Focus duration">
+          <option value="5">5 minutes</option><option value="6">6 minutes</option><option value="7" selected>7 minutes</option><option value="8">8 minutes</option><option value="9">9 minutes</option><option value="10">10 minutes</option>
+        </select>
+      </div>
+      <button id="start" class="primary" type="button">Start Focus <span aria-hidden="true">→</span></button>
+      <section id="timer-panel" class="timer-panel" aria-label="Focus session" hidden>
+        <span class="timer-label">ONE THING. RIGHT NOW.</span>
+        <div id="countdown" class="countdown" role="timer" aria-label="Time remaining">07:00</div>
+        <p id="timer-status" class="timer-status" role="status">A little space for one small step.</p>
+        <div class="timer-controls"><button id="pause" class="secondary" type="button">Pause</button><button id="reset" class="text-button" type="button">Reset</button></div>
+      </section>
+      <p id="completion" class="completion" role="status" hidden></p>
+      <div class="action-controls"><button id="complete" class="secondary" type="button">Mark complete <span aria-hidden="true">✓</span></button><button id="retry" class="text-button" type="button">Try another step <span aria-hidden="true">↻</span></button></div>
+      <p id="retry-notice" class="retry-notice" role="status" hidden></p>
+    </section>
+    <footer class="page-footer"><span aria-hidden="true">✧</span> Small is still forward.</footer>
+    <noscript><p class="error">Please enable JavaScript to generate your next step and use the focus timer.</p></noscript>
+  </main>
+</body>
+</html>

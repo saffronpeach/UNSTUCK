@@ -1,0 +1,22 @@
+/devpost/learner-profile.md
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.DS_Store
+test-results/
+*.pem
+*.key
+credentials*.json
+service-account*.json
+.aws/
+.codex/
+# Local curriculum tooling is not application source.
+/.agents/
+/.claude/
+/agent/
+/skills-lock.json
+/dist/
