@@ -5,8 +5,8 @@ Requires Playwright and local Google Chrome; not an application dependency.
 from playwright.sync_api import sync_playwright, expect
 
 URL = 'http://127.0.0.1:8017'
-FIRST = {'acknowledgment': 'That sounds like a lot to hold at once.', 'action': 'Open your nearest-deadline assignment and read the first instruction.', 'recommended_minutes': 6}
-SECOND = {'acknowledgment': 'A different starting point is okay.', 'action': 'Clear one small area of your desk for the assignment.', 'recommended_minutes': 5}
+FIRST = {'acknowledgment': 'That sounds like a lot to hold at once.', 'action': 'Open your nearest-deadline assignment and read the first instruction.', 'recommended_minutes': 6, 'priority': {'task': 'assignments', 'basis': 'unspecified', 'evidence': ''}, 'priority_reason': 'A manageable starting point; no unstated deadline or urgency is assumed.'}
+SECOND = {'acknowledgment': 'A different starting point is okay.', 'action': 'Clear one small area of your desk for the assignment.', 'recommended_minutes': 5, 'priority': {'task': 'assignments', 'basis': 'unspecified', 'evidence': ''}, 'priority_reason': 'A manageable starting point; no unstated deadline or urgency is assumed.'}
 
 
 def run():
@@ -138,7 +138,7 @@ def run():
         expect(page.locator('#action-heading')).to_have_text(FIRST['action'])
         expect(page.locator('#completion')).to_have_text('One small step done. That counts.')
         assert progress_payloads[-1] == {'thoughts': task_input, 'previous_action': FIRST['action'],
-            'completed_actions': [FIRST['action']], 'mode': 'continue'}
+            'completed_actions': [FIRST['action']], 'mode': 'continue', 'priority_context': FIRST['priority']}
         page.unroute('**/api/step')
         next_step = {**FIRST, 'action': 'Write a rough answer to the first question.'}
         alternate = {**FIRST, 'action': 'List two ideas for answering the first question.'}

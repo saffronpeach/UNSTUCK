@@ -1,6 +1,6 @@
 # UNSTUCK
 
-**One step at a time.** A small, local web application that turns overwhelming thoughts into one concrete action using Gemini, helps you focus, and offers a logical next step after each completed action. Type your thoughts or use optional browser voice input.
+**One step at a time.** A small, local web application that uses Gemini to identify a priority from your stated constraints, recommend one concrete action, help you focus, and offer a logical next step after completion. Type your thoughts or use optional browser voice input.
 
 Built with FastAPI, plain HTML/CSS/JavaScript, and server-side Google Gemini. No accounts, database, persistent task history, or persistent browser storage. Completed actions stay in memory only for the current task, enabling Continue → Next Step.
 
@@ -30,14 +30,20 @@ The default model is `gemini-3.1-flash-lite`. Upstream high-demand 503 responses
 
 ## Try the complete workflow
 
-1. Type an overwhelming task, or use the microphone and stop dictation, then select **Help me get unstuck**. Expect a short acknowledgment, one action, and a suggested duration.
+1. Type an overwhelming task, or use the microphone and stop dictation, then select **Help me get unstuck**. Expect “Your priority right now,” a short evidence-based explanation, a supportive acknowledgment, one action, and a suggested duration.
 2. Select **Try another step**. It should offer a different action for the original input, even if you edit the text field without resubmitting.
 3. Choose 5–10 minutes (default 7), select **Start Focus**, and try pause, resume, and reset. New generation is disabled while focus is running or paused; reset unlocks it.
 4. Complete early to stop the timer and see a positive message. In a separate session, let the timer finish and check **You did it! Every small step counts.**, then mark complete or retry.
-5. After completing an action, select **Continue → Next Step**. The next action uses your original task and completed steps. Complete more actions to increase the progress count. Retry preserves that progress; a failed next-step request keeps your state and lets you try Continue again. A successful new main-form submission starts a fresh task.
+5. After completing an action, select **Continue → Next Step**. The next action uses your original input, prior priority, and completed steps. Gemini reassesses when completed work finishes a task or unblocks another; one small completion does not automatically finish the whole task. Complete more actions to increase the progress count. Retry preserves that progress; a failed next-step request keeps your state and lets you try Continue again. A successful new main-form submission starts a fresh task.
 6. Try blank input, a narrow browser window, and keyboard controls. Refresh clears all app state.
 
 Gemini's recommended duration is advisory; change the timer selection yourself if desired. Only the selected duration drives the timer. UNSTUCK does not send notifications or upload audio to its backend. On explicit generation, retry, or Continue requests, task text and relevant completed actions are sent to Gemini; the app keeps them only in the current browser session. Optional voice input may use the browser’s own speech service. Provider processing follows the respective providers’ policies.
+
+## Lightweight prioritization
+
+Mention deadlines, urgency, importance, and prerequisites in your input when you know them. UNSTUCK selects one current priority and one manageable action, not a ranked task list. Its priority label and evidence must come from the original text. The server builds the explanation from the quoted evidence; it rejects unsupported priority claims and common explicit negations such as “not urgent.” If ranking information is missing, it uses a neutral manageable-start explanation rather than assuming urgency or inventing a deadline. Relative deadlines remain as stated, without an assumed calendar date.
+
+Continue and retry carry the previous priority plus completed actions in browser memory. Priorities can change when that progress warrants it; failed requests preserve the previous priority and progress. AI selection still needs your judgment, especially with ambiguous or competing constraints. Submit revised input to start a fresh task context.
 
 ## Voice input
 
@@ -63,6 +69,7 @@ Optional repeatable browser verification (requires local Google Chrome and a run
 python -m pip install playwright==1.64.1
 python tests/browser_check.py
 python tests/speech_browser_check.py
+python tests/priority_browser_check.py
 ```
 
 The workflow browser check intercepts all AI requests explicitly so it never spends API quota. It checks three-step progression, ordered original-task context, retry and Continue failures, progress reset, validation/loading, a full simulated focus session, early/late completion, safe text rendering, and 320/390/1280px layouts. Screenshots go to `/tmp/unstuck-desktop.png` and `/tmp/unstuck-mobile.png`. This is test-only tooling, not part of the application or live AI evidence.
@@ -78,3 +85,5 @@ The required planning documents are [scope](devpost/scope.md), [PRD](devpost/prd
 MIT license; see [LICENSE](LICENSE). Third-party dependencies retain their own licenses. No Gemini API credentials are distributed.
 
 The speech regression uses a simulated recognition engine to verify start/stop, editable text, no auto-submit, language fallback, permission/service failures, cancellation, input length, and timer/progression compatibility. The microphone feature has also been manually tested and approved; support and recognition accuracy can still vary by browser and language.
+
+The priority browser regression verifies visible priority/reason, continuation and retry context, reassessment rendering, failure preservation, new-task reset, and safe text rendering with simulated responses. Separate live Gemini checks verified a stated essay deadline, essay continuation, and neutral handling when ranking information was missing. The learner manually tested and approved all three prioritization scenarios. The combined update awaits publication approval.

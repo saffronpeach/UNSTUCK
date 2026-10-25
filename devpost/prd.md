@@ -5,12 +5,12 @@ status: approved
 
 # UNSTUCK — Product Requirements
 
-A single-page application helping students and people experiencing overwhelm turn typed or spoken thoughts into one small action, focus, and continue to a logical next action after completion.
+A single-page application helping students and people experiencing overwhelm choose a current priority from typed or spoken thoughts, start one small action, focus, and continue to a logical next action after completion.
 Source: `scope.md > The Unique Kernel`, `Who It's For`, and `The POC Boundary`.
 
 ## The Core Journey
 1. Open the page and type what is overwhelming you, or start the optional microphone, dictate, stop, and edit the text. Nothing submits automatically.
-2. Select “Help me get unstuck.” See loading feedback, then a short supportive acknowledgment, exactly one concrete next action, and a recommended focus duration.
+2. Select “Help me get unstuck.” See loading feedback, then “Your priority right now,” a brief evidence-based explanation, a supportive acknowledgment, exactly one concrete next action, and a recommended focus duration.
 3. Optionally select “Try another step” to request a different small action for the same original input.
 4. Select “Start Focus” to reveal and start the timer. Default to 7 minutes; allow adjustment from 5 to 10 minutes before starting. Pause, resume, or reset as needed.
 5. At zero, show “You did it! Every small step counts.” Offer completion or another step. Completing early also stops the timer and shows a short positive message.
@@ -25,6 +25,15 @@ Premium, calming, modern minimalism: dark charcoal background, soft lavender and
 Source: `scope.md > Inspiration & Identity`, expanded by the learner's visual decisions.
 
 ## Features and Behavior
+
+### Priority Selection and Reassessment
+- Use only stated deadlines, urgency, importance, and dependencies to select one current task. A necessary prerequisite may be the immediate priority when it unblocks important work. Do not present a ranked list or add input fields.
+- Show “Your priority right now,” a short task excerpt, and an explanation. The task and supporting evidence must be excerpts of the original input. The server constructs explanations from that evidence, rather than trusting a free-form AI explanation.
+- With no stated ranking factors, use the neutral explanation “A manageable starting point; no unstated deadline or urgency is assumed.” Do not invent dates, deadlines, stakes, or urgency, or convert relative dates into assumed absolute dates. Respect negation such as “not urgent.”
+- Keep the prior priority in memory and send it alongside the original input, current action, and ordered completed actions on Continue/retry. Reassess each explicit request when completed work finishes a task or resolves a dependency; do not infer that completing one small action finishes the whole task.
+- Failed requests preserve the priority, explanation, action, completed count, and timer state. A successful new main submission replaces the priority and clears progress; unsent typed or spoken edits do not alter context.
+- Acceptance: stated deadlines appear only as quoted; missing-ranking inputs remain neutral; unsupported task/evidence and contradictory/common negated factors are rejected; context reaches the AI on Continue/retry; reassessed priorities replace the old display only on success. AI ranking is a recommendation requiring user judgment, not a deterministic scheduling engine.
+Source: explicit learner request for a small local-only prioritization extension.
 
 ### Thought Input and AI Action
 - Accept nonblank text; sensible default limit: 2,000 characters. Show a clear inline message for invalid input without making a request.
@@ -64,7 +73,7 @@ Source: `scope.md > The Core Loop` and `Explicitly Cut`.
 
 ### Continue and Session Progress
 - Continue is available only after explicitly marking the current action complete, including completion after expiry. Reaching zero alone does not add an action or reveal Continue.
-- Send the original successful task input, ordered completed actions, and current action as task context. Ask Gemini for one logically subsequent action that builds on progress and does not repeat completed work.
+- Send the original successful task input, ordered completed actions, current action, and prior priority as task context. Ask Gemini for one logically subsequent action that builds on progress and does not repeat completed work.
 - Successful continuation preserves the completed list/count, replaces the current result, and resets the focus timer to its 7-minute default. The Continue button hides until the new action is completed.
 - Retry keeps the same original task and completed list, asking for an alternative unfinished action; it does not count the rejected action as complete.
 - Failed continuation preserves the current result, completed list/count, timer/completion state, and original input. Show a result-local notice and re-enable Continue for another attempt; disable duplicate requests while loading.
@@ -87,11 +96,11 @@ Source: `scope.md > The Core Loop` and `The POC Boundary`; explicitly requested 
 - Learner requested sensible defaults for validation/loading/errors and authorized finalization once these decisions were incorporated. Character limit, timer locking, recommendation handling, reset semantics, and completion copy above are implementation defaults rather than independently volunteered preferences.
 
 ## What We're Building
-The single-page core journey, optional browser dictation, real AI generation and retry, context-aware Continue progression with an in-memory completed count, responsive calming design, focus controls, completion, and recoverable errors. Verification covers the loop, full timer behavior, invalid input, and AI failure. A short demo can show generation and focus starting without waiting seven minutes on camera.
+The single-page core journey, optional browser dictation, lightweight grounded priority selection/reassessment, real AI generation and retry, context-aware Continue progression with an in-memory completed count, responsive calming design, focus controls, completion, and recoverable errors. Verification covers the loop, full timer behavior, invalid input, and AI failure. A short demo can show generation and focus starting without waiting seven minutes on camera.
 
 ## Non-Goals
 Accounts, databases, persistent storage, notifications, persistent task history, dashboards, and optional features remain excluded for the scope's stated reasons. No extra screens, analytics, or gamification. No optional enhancements are committed.
 Source: `scope.md > Explicitly Cut` and `Later`.
 
 ## Open Questions
-No blocking implementation decisions. Browser speech support and Gemini availability remain external limitations with typing/manual-retry fallbacks. Feature work is frozen; publication requires explicit approval of the audited update, followed by demo recording and submission review.
+No blocking implementation decisions. Browser speech support and Gemini availability remain external limitations with typing/manual-retry fallbacks. The learner manually tested and approved all three prioritization scenarios. The final combined update is being audited for publication approval. Publication still requires explicit approval, followed by demo recording and submission review; no further features are planned.

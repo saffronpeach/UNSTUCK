@@ -5,16 +5,16 @@ status: approved
 
 # UNSTUCK
 
-A minimal AI-powered web application that turns typed or spoken overwhelming thoughts into one small action, a short focus session, and a logical next step after completion.
+A minimal AI-powered web application that helps users identify a current priority from their stated constraints, start one small action, focus, and continue making progress. Input can be typed or optionally dictated.
 
 ## The Unique Kernel
-Reduce the decision of where to start to one immediately actionable step, then help the user begin it with a 5–10 minute timer. The central proof is the transition from overwhelm to action, followed by continued progress without re-entering the task.
+Reduce the decision of what matters and where to start to one grounded priority and one immediately actionable step, then help the user begin it with a 5–10 minute timer. The central proof is the transition from overwhelm to action, followed by continued progress without re-entering the task.
 
 ## Who It's For
 Students and people struggling with task initiation or overwhelm, who have something to do but need help identifying a manageable starting point.
 
 ## The Core Loop
-Open UNSTUCK → type what is overwhelming you, or dictate and stop voice input before submitting → receive one small, concrete action from a real AI API → start a 5–10 minute focus timer → mark the action complete or retry. After completion, Continue → Next Step uses the original input and completed actions to keep progressing on the same task. Only the current session remembers these actions; a new submission or refresh starts fresh.
+Open UNSTUCK → type what is overwhelming you, or dictate and stop voice input before submitting → see one priority and its stated basis, plus one small, concrete action from a real AI API → start a 5–10 minute focus timer → mark the action complete or retry. After completion, Continue → Next Step uses the original input, prior priority, and completed actions to keep progressing on the same task. Only the current session remembers these actions; a new submission or refresh starts fresh.
 
 ## Inspiration & Identity
 A calm, responsive single page: charcoal background, lavender/violet accents, rounded cards, clean sans-serif typography, spacious layout, and restrained motion. Optional voice input shares the same input surface; progress is a simple completed-step count.
@@ -31,7 +31,7 @@ Submission preparation includes the required short demo video and public GitHub 
 
 ## The POC Boundary
 - Simple responsive interface for the core loop, with optional browser-native speech-to-text entry where supported; typing always remains available.
-- Real AI API integration that recommends one small, concrete next action.
+- Real AI API integration that weighs stated deadlines, urgency, importance, and dependencies; shows one priority with a short grounded explanation; and recommends exactly one small next action. No invented deadlines or assumed urgency when information is missing.
 - Short focus timer within the requested 5–10 minute range.
 - Mark the action complete, retry, or continue to a logically subsequent step; show a session-only completed-step count.
 - Basic validation, loading feedback, and recoverable errors.
@@ -40,7 +40,7 @@ Submission preparation includes the required short demo video and public GitHub 
 The PRD defines the implemented screen, voice controls, retry/progression semantics, and errors; the technical spec defines the FastAPI/Gemini/browser implementation. This release is limited to those implemented features.
 
 ## Later
-Feature work is frozen for submission. Remaining work is publication approval, demo recording, and the Devpost form; no further features are planned.
+The only authorized addition to the previous release scope is lightweight prioritization in the existing result and request flow. No further features are planned. Remaining work is publication approval, demo recording, and the Devpost form; no further features are planned.
 
 ## Explicitly Cut
 - Accounts: unnecessary to demonstrate the core loop.

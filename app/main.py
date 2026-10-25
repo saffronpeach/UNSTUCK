@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
-from .ai import GenerationError, Step, generate_step
+from .ai import GenerationError, PriorityContext, Step, generate_step
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env", override=False)
@@ -20,11 +20,18 @@ class StepRequest(BaseModel):
     previous_action: str | None = Field(default=None, min_length=1, max_length=500)
     completed_actions: list[Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]] = Field(default_factory=list, max_length=100)
     mode: Literal["suggest", "retry", "continue"] = "suggest"
+    priority_context: PriorityContext | None = None
 
     @model_validator(mode="after")
     def validate_continuation(self):
         if self.mode == "continue" and (not self.completed_actions or self.previous_action != self.completed_actions[-1]):
             raise ValueError("Continue requires the latest completed action as context.")
+        if self.priority_context:
+            source = " ".join(self.thoughts.casefold().split())
+            if " ".join(self.priority_context.task.casefold().split()) not in source or (
+                self.priority_context.evidence and " ".join(self.priority_context.evidence.casefold().split()) not in source
+            ):
+                raise ValueError("Priority context must be grounded in the original thoughts.")
         return self
 
 
@@ -36,6 +43,6 @@ async def index():
 @app.post("/api/step", response_model=Step)
 async def step(payload: StepRequest):
     try:
-        return await generate_step(payload.thoughts, payload.previous_action, payload.completed_actions, payload.mode)
+        return await generate_step(payload.thoughts, payload.previous_action, payload.completed_actions, payload.mode, payload.priority_context)
     except GenerationError as exc:
         raise HTTPException(status_code=exc.status, detail=exc.message) from None

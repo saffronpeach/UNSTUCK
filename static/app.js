@@ -75,17 +75,24 @@ async function requestStep(mode = 'suggest') {
     const response = await fetch('/api/step', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
       body: JSON.stringify({ thoughts, previous_action: sameTask ? current.action : null,
-        completed_actions: sameTask ? [...completedActions] : [], mode }),
+        completed_actions: sameTask ? [...completedActions] : [], mode,
+        priority_context: sameTask ? current.priority : null }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Check your thoughts and try again.');
     if (typeof data.action !== 'string' || !data.action.trim() || typeof data.acknowledgment !== 'string' ||
         !data.acknowledgment.trim() || !Number.isInteger(data.recommended_minutes) ||
-        data.recommended_minutes < 5 || data.recommended_minutes > 10) throw new Error('We couldn’t get a usable step. Please try again.');
+        data.recommended_minutes < 5 || data.recommended_minutes > 10 ||
+        typeof data.priority?.task !== 'string' || !data.priority.task.trim() ||
+        !['deadline', 'urgency', 'importance', 'dependency', 'unspecified'].includes(data.priority.basis) ||
+        typeof data.priority.evidence !== 'string' ||
+        typeof data.priority_reason !== 'string' || !data.priority_reason.trim()) throw new Error('We couldn’t get a usable step. Please try again.');
     current = data;
     originalThoughts = thoughts;
     if (!sameTask) completedActions = [];
     $('acknowledgment').textContent = data.acknowledgment;
+    $('priority-task').textContent = data.priority.task;
+    $('priority-reason').textContent = data.priority_reason;
     $('action-heading').textContent = data.action;
     $('recommendation').textContent = `Suggested focus: ${data.recommended_minutes} minutes · one small beginning`;
     timer.reset(); timer.setMinutes(7);

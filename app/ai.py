@@ -2,10 +2,32 @@
 import asyncio
 import json
 import os
+import re
+from typing import Literal
 import httpx
 from google import genai
 from google.genai import errors, types
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+
+
+class PriorityContext(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    task: str = Field(min_length=1, max_length=180)
+    basis: Literal["deadline", "urgency", "importance", "dependency", "unspecified"]
+    evidence: str = Field(max_length=300)
+
+    @model_validator(mode="after")
+    def require_stated_evidence(self):
+        if (self.basis == "unspecified") != (not self.evidence):
+            raise ValueError("A stated priority factor requires a source quote; unspecified priorities have no evidence.")
+        negative_factors = {
+            "deadline": r"\b(no deadline|without a deadline)\b",
+            "urgency": r"\b(not urgent|no urgency|no rush|can wait|not an emergency|not time[- ]sensitive)\b",
+            "importance": r"\b(not important|no importance|unimportant)\b",
+        }
+        if self.basis in negative_factors and re.search(negative_factors[self.basis], self.evidence.casefold()):
+            raise ValueError("Negated evidence cannot support a positive priority factor.")
+        return self
 
 
 class Step(BaseModel):
@@ -13,6 +35,21 @@ class Step(BaseModel):
     acknowledgment: str = Field(min_length=1, max_length=300)
     action: str = Field(min_length=1, max_length=500)
     recommended_minutes: int = Field(strict=True, ge=5, le=10)
+    priority: PriorityContext
+    priority_reason: str = ""
+
+    @model_validator(mode="after")
+    def explain_from_evidence(self):
+        # The server constructs explanations so the model cannot invent a date
+        # or urgency claim in free-form priority reasoning.
+        labels = {"deadline": "Stated deadline", "urgency": "Stated urgency",
+                  "importance": "Stated importance", "dependency": "Stated dependency"}
+        self.priority_reason = (
+            f'{labels[self.priority.basis]}: “{self.priority.evidence}”'
+            if self.priority.basis != "unspecified" else
+            "A manageable starting point; no unstated deadline or urgency is assumed."
+        )
+        return self
 
 
 # Gemini's response_schema uses a subset of JSON Schema. Keep strict Pydantic
@@ -23,8 +60,13 @@ OUTPUT_SCHEMA = types.Schema(
         "acknowledgment": types.Schema(type=types.Type.STRING),
         "action": types.Schema(type=types.Type.STRING),
         "recommended_minutes": types.Schema(type=types.Type.INTEGER, minimum=5, maximum=10),
+        "priority": types.Schema(type=types.Type.OBJECT, properties={
+            "task": types.Schema(type=types.Type.STRING),
+            "basis": types.Schema(type=types.Type.STRING, enum=["deadline", "urgency", "importance", "dependency", "unspecified"]),
+            "evidence": types.Schema(type=types.Type.STRING),
+        }, required=["task", "basis", "evidence"]),
     },
-    required=["acknowledgment", "action", "recommended_minutes"],
+    required=["acknowledgment", "action", "recommended_minutes", "priority"],
 )
 
 
@@ -44,10 +86,27 @@ them to repeat a completed action. When mode is continue, use the original thoug
 completed actions, and previous_action (the current task context) to suggest the
 next logical small action that builds on that progress, rather than restarting.
 When mode is retry, offer an alternative next action consistent with the same
-progress. Do not infer that an uncompleted previous_action was finished. Return only the schema."""
+progress. Do not infer that an uncompleted previous_action was finished.
+Choose the highest-priority actionable task by weighing ONLY explicitly stated
+deadlines, urgency, importance, and dependencies. Dependencies may need doing
+first to unblock the important/deadline task. priority.task MUST be a short exact
+excerpt from the original thoughts identifying the chosen task (not a paraphrase).
+priority.basis names its strongest stated factor, and priority.evidence MUST be
+an exact quote from the original thoughts supporting that factor. Respect negation;
+"not urgent" is not evidence of urgency. Never invent deadlines, dates, stakes,
+or urgency, and never convert relative deadlines into assumed absolute dates.
+When ranking information is missing, basis MUST be unspecified and evidence MUST
+be empty; offer a manageable starting point without claiming it is urgent.
+Return exactly ONE small action for that priority, not a ranked list. Do not add
+unsupported timing or urgency claims to the action or acknowledgment.
+priority_context is the last chosen priority. Preserve it while still appropriate;
+reassess on each request when completed work finishes a task or unblocks a more
+important one. One small completed action does not mean the whole task is done.
+Use original thoughts, completed_actions and priority_context together; never
+reset to the first step or repeat finished work. Return only the schema."""
 
 
-async def generate_step(thoughts: str, previous_action: str | None, completed_actions: list[str] | None = None, mode: str = "suggest") -> Step:
+async def generate_step(thoughts: str, previous_action: str | None, completed_actions: list[str] | None = None, mode: str = "suggest", priority_context: PriorityContext | None = None) -> Step:
     key = os.getenv("GEMINI_API_KEY", "").strip()
     if not key:
         raise GenerationError(503, "Add your Gemini API key to the local .env file, then restart UNSTUCK.")
@@ -65,7 +124,8 @@ async def generate_step(thoughts: str, previous_action: str | None, completed_ac
             response = await asyncio.wait_for(client.models.generate_content(
                 model=os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite"),
                 contents=json.dumps({"thoughts": thoughts, "previous_action": previous_action,
-                                     "completed_actions": completed_actions or [], "mode": mode}),
+                                     "completed_actions": completed_actions or [], "mode": mode,
+                                     "priority_context": priority_context.model_dump() if priority_context else None}),
                 config=types.GenerateContentConfig(
                     system_instruction=SYSTEM,
                     response_mime_type="application/json",
@@ -74,6 +134,11 @@ async def generate_step(thoughts: str, previous_action: str | None, completed_ac
                 ),
             ), timeout=30)
             result = Step.model_validate_json(response.text or "")
+        source = " ".join(thoughts.casefold().split())
+        if " ".join(result.priority.task.casefold().split()) not in source or (
+            result.priority.evidence and " ".join(result.priority.evidence.casefold().split()) not in source
+        ):
+            raise GenerationError(502, "We couldn't ground that priority in your stated task. Your progress is unchanged; please try again.")
         normalize = lambda action: " ".join(action.casefold().split()).rstrip(".!?")
         if any(normalize(result.action) == normalize(action) for action in completed_actions or []):
             raise GenerationError(502, "That repeated a completed step. Your progress is unchanged; please try again.")

@@ -1,7 +1,7 @@
 ---
 doc: checklist
 status: approved
-build_status: awaiting_publication_approval
+build_status: complete
 ---
 
 # Build Checklist
@@ -40,6 +40,16 @@ Build mode: fast — explicitly approved along with build order and local Git in
   Learner check: Hard-refresh localhost:8017 in a supporting browser. Click Use microphone, grant access, speak a short task, and click Stop dictation. Edit the text, confirm no automatic AI request, then explicitly submit. Try denied permission or an unsupported browser and confirm typing remains available. Recheck Continue and focus; approve local updates before publishing.
   Commit: `Add browser-native speech input with accessible controls`
 
+- [x] **4. Choose a grounded priority before the next small action**
+  Becomes usable: The existing result card shows Your priority right now and a short grounded explanation before one action. Continue/retry preserve priority context and progress, reassessing when completion changes what matters.
+  Why now: Explicit final prioritization request; architecture check confirmed the change fits existing schemas, Gemini call, and result view. No new route, service, dependency, dashboard, or storage.
+  PRD ref: `prd.md > Priority Selection and Reassessment`, `Continue and Session Progress`.
+  Spec ref: `spec.md > Implemented Lightweight Priority Selection`, `Step Endpoint`, `Gemini Adapter`.
+  Build: Add source-grounded PriorityContext and explicit Gemini schema, construct reasons from quoted evidence, use a neutral missing-information fallback, pass prior priority with original thoughts/completed actions, and display it in the existing card. Preserve all existing workflows and errors.
+  Verify (mechanical): 62 API tests, 7 timer tests, and all three browser suites pass. API contracts exercise stated deadline/urgency/importance/dependency factors, source evidence, missing information, common negations, context continuity/reassessment, and provider errors. Existing timer, speech, and progression suites pass, plus new priority browser checks. Live generic-task checks passed for essay deadline selection, continued essay work, and no-ranking fallback. No publication.
+  Learner check: Restart/hard-refresh localhost:8017. Compare an essay due tomorrow against laundry with no deadline, then try tasks without any urgency/deadline information. Check one priority/reason and one action; complete and Continue to verify continuity. Try a stated prerequisite/importance case, and confirm failures keep priority/count. Approve only after manual review; a new audited publication candidate is required.
+  Commit: `Add grounded lightweight task prioritization`
+
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — learner reports successful real Gemini recommendation, focus interface, and completion state; requested clearer failed-retry feedback.
@@ -47,10 +57,12 @@ Build mode: fast — explicitly approved along with build order and local Git in
 
 ## Final Review
 
-- [x] Speech input manually tested and approved by the learner.
-- [ ] Combined progression/voice publication approval pending after the final documentation, tests, and audit summary.
+- [x] Learner manually tested and approved prioritization; all three scenarios worked as expected.
 
-- [ ] Progression extension final acceptance is included in the combined update review; automated and live continuation checks passed. Do not infer an unreported manual progression test. Earlier MVP approval remains complete.
+- [x] Speech input manually tested and approved by the learner.
+The final combined prioritization/progression/voice update requires separate publication approval after final tests and audit.
+
+Progression has automated and live continuation evidence; the learner approved the prioritization scenarios including continuation. Earlier MVP approval remains complete.
 
 - [x] Failed-retry refinement accepted in the learner’s explicit approval of the completed MVP and hands-on review.
 
@@ -58,7 +70,7 @@ Implementation is mechanically verified and the learner has approved the final h
 
 Implementation checkpoint: `862656d` (`Build UNSTUCK AI action and focus workflow`). Automated checks and screenshot review completed; temporary UNSTUCK test server stopped so the learner can launch with the documented command. The existing service on port 8000 was left untouched.
 
-Automated evidence: 37 passing API tests; 7 passing timer tests; isolated Chrome browser checks for input validation, loading, preserved retry context, recoverable errors, full simulated focus session, early completion, inert model text, refresh reset, and layouts at 320/390/1280px. Desktop and mobile screenshots inspected. Python compilation, JavaScript syntax checks, and dependency compatibility checks pass. Current automated generated-response test data is explicitly simulated; genuine generation was separately confirmed by live diagnosis and the learner. Deterministic session checks do not claim seven minutes of real-time learner testing.
+Current automated evidence: 62 passing API tests; 7 passing timer tests; isolated Chrome browser checks for input validation, loading, preserved retry context, recoverable errors, full simulated focus session, early completion, inert model text, refresh reset, and layouts at 320/390/1280px. Desktop and mobile screenshots inspected. Python compilation, JavaScript syntax checks, and dependency compatibility checks pass. Current automated generated-response test data is explicitly simulated; genuine generation was separately confirmed by live diagnosis and the learner. Deterministic session checks do not claim seven minutes of real-time learner testing.
 
 - [x] Final review complete — feedback resolved and learner explicitly confirms ready to ship.
 
@@ -75,6 +87,10 @@ Reflection: Optional reflection omitted per learner's concise-curriculum prefere
 Activity mode: Brief recap after final revisions; build complete by learner approval. Next: 6-ship, pending publication and submission approvals.
 
 ## Revisions
+
+- Learner manually tested and approved all three prioritization scenarios. Feature work is complete. Prepare the final combined 23-file update, rerun regression/security checks, and request explicit approval before pushing. No Devpost submission is authorized.
+
+- Learner requested one final lightweight prioritization change after the progression/voice candidate was prepared. Extend only existing request/response models, Gemini prompt, and result card. Preserve context in memory and derive explanations from source quotes, with a neutral fallback for missing factors. Tests/live evidence pass; manual prioritization review and a new publication audit remain required. No GitHub update or Devpost submission occurred.
 
 - Final release preparation: documentation now reflects the complete implemented progression and optional voice flow. Speech manual review is explicitly approved; 46 API tests, 7 timer tests, and both browser suites are rerun. No new features are planned. Prepare one clean update on top of public commit 2888b9d; do not push before explicit publication approval.
 

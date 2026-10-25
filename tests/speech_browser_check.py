@@ -4,7 +4,7 @@ Run against UNSTUCK on port 8017 after installing optional Playwright.
 from playwright.sync_api import sync_playwright, expect
 
 URL = 'http://127.0.0.1:8017'
-RESULT = {'acknowledgment': 'One small beginning is enough.', 'action': 'Open the assignment document.', 'recommended_minutes': 7}
+RESULT = {'acknowledgment': 'One small beginning is enough.', 'action': 'Open the assignment document.', 'recommended_minutes': 7, 'priority': {'task': 'submission', 'basis': 'unspecified', 'evidence': ''}, 'priority_reason': 'A manageable starting point; no unstated deadline or urgency is assumed.'}
 MOCK = r"""
 window.__speech = [];
 window.__emitSpeech = (texts, resultIndex = 0) => {
