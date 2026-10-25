@@ -1,88 +1,74 @@
 ---
 doc: submission-preparation
-status: draft
+status: awaiting-publication-approval
 ---
 
-# UNSTUCK — Submission Preparation
+# UNSTUCK — Final Submission Preparation
 
-5-build is complete by the learner's explicit final approval. 6-ship is in progress. Nothing has been published, uploaded, or submitted.
+The original public MVP is at https://github.com/saffronpeach/UNSTUCK. Continuous progression and optional browser voice input are implemented locally. The learner manually tested and approved voice input. The combined update is prepared for publication review; it has not been pushed. No demo video or Devpost submission has been completed. Feature work is frozen.
 
-## Verified Requirements
+## Publication Review
 
-Checked against the official [overview](https://learn-ai-basics.devpost.com/), [rules](https://learn-ai-basics.devpost.com/rules), and [organizer updates](https://learn-ai-basics.devpost.com/updates).
+Target: **saffronpeach/UNSTUCK**, public, MIT license. Prepare a normal update on top of the clean public history; never push the original development history. The release contains 22 source/document/test files, including the new static/speech.js and tests/speech_browser_check.py. It excludes .env, credentials, the personal learner profile, local tooling, recordings, and development Git metadata.
 
-- Submit a new working project built with the Devpost Learn Skill Pack; include scope.md, prd.md, and spec.md in its public repository.
-- Provide the public repository URL. The rules also call for an open-source license; a proposed MIT LICENSE is prepared locally for publication approval.
-- Record a working screen demo. Target 1–3 minutes per the overview and stay under three minutes per the rules. Upload to publicly visible YouTube or Vimeo and verify logged-out access.
-- Complete the project name, description, other required submission fields, and exit survey. Organizer updates specifically identify a required Skill Pack explanation and age-of-majority checkbox; place the public repository link in “Try it out.”
-- Deadline: October 26, 2026, 23:00 Europe/Helsinki (17:00 EDT).
-- Deployment and peer feedback are optional and are not planned.
+Implemented release behaviors:
+- Typed or optional dictated input, edited and explicitly submitted by the user.
+- Real Gemini acknowledgment, concrete action, and suggested duration.
+- Focus timer with start/pause/resume/reset and early/expired completion.
+- Continue → Next Step with original task context, ordered completed actions in memory, and a completed-step count.
+- Retry and Continue failures preserve the current recommendation and progress.
+- Browser speech support/permission errors retain typing; browser-native speech processing may use an online service.
 
-The authenticated submission form was not accessible from this session. Exact remaining field prompts and the exit survey must be checked in the learner's logged-in form, not invented here. The learner must confirm their own eligibility; no age or personal survey answer is inferred.
+Verification: 46 API tests, 7 timer tests, workflow browser tests, and fake-engine speech browser tests. Live generation/continuation evidence and the learner’s manual microphone approval are separate from simulations. Audit the final release tree and all reachable public history before requesting publication approval. Record the exact candidate commit and archive hash in the local dist/ audit report. Do not push until the learner explicitly approves this final update.
 
-## Project Name and Existing Human-Written Description
+## Required Submission Items
 
-Project name, already chosen by the learner: **UNSTUCK**.
+Official sources: [overview](https://learn-ai-basics.devpost.com/), [rules](https://learn-ai-basics.devpost.com/rules), [organizer updates](https://learn-ai-basics.devpost.com/updates).
 
-The following is copied verbatim from the learner's original message; it is not newly drafted submission prose:
+- Public repository with source, setup instructions, an open-source license, and scope.md, prd.md, spec.md. Put its URL in the Devpost “Try it out” field.
+- Working screen demo: aim for 1–3 minutes and remain under three minutes. Publish on YouTube or Vimeo and check logged-out access.
+- Complete the actual form’s required project fields, Skill Pack explanation, age-of-majority confirmation, and exit survey yourself. The authenticated form is not available to this agent; exact prompts must be checked in your logged-in form.
+- Deadline: October 26, 2026, 23:00 Europe/Helsinki (17:00 EDT). No deployment or peer review is required.
+- No Devpost submission or video upload has been authorized. Publication approval covers only the reviewed GitHub update.
+
+## Existing Human-Written Project Notes
+
+Project name: **UNSTUCK**.
+
+The following wording was supplied by the learner and is preserved verbatim:
 
 > My project is UNSTUCK, an AI-powered web application that helps overwhelmed people turn their thoughts into one small, actionable next step.
 
-Additional human-supplied source notes, preserved without rewriting:
-
 > Target users: Students and people struggling with task initiation or overwhelm.
 
-> Core workflow: User describes what is overwhelming them → AI identifies one small, concrete next action → user starts a 5–10 minute focus timer → user marks the action complete or retries.
+Use your own words for additions about progression, voice, learning, and the Skill Pack. The official 6-ship skill reserves public narration, submission answers, and personal reflections to the learner; spelling/grammar review is available. Do not invent a personal learning outcome.
 
-The learner chooses what to paste and writes any additional description, personal learning reflection, Skill Pack explanation, and exit-survey responses. The official 6-ship skill reserves public narration and submission writing to the learner; spelling and grammar review is available. These notes are not marked as a completed submission form.
+## Demo Action Plan — About 2 Minutes 20 Seconds
 
-## Demo Run of Show — Approximately 2 Minutes
+This is an on-screen action plan; narration remains yours. Record the browser only, without the IDE, .env, terminal, personal notifications, or unrelated windows. Use a generic task, never sensitive personal input.
 
-This is a technical action script, not authored narration. Explain each beat in your own words. Record only the browser, without the IDE, .env tab, terminal, personal notifications, or unrelated windows. Use a generic example rather than sensitive personal input.
-
-| Time | On-screen action | What to explain in your own words |
+| Time | Show | Explain in your own words |
 | --- | --- | --- |
-| 0:00–0:15 | Show the clean UNSTUCK page and tagline. | Who you built it for and the difficulty starting an overwhelming task. |
-| 0:15–0:45 | Type a generic overwhelmed-student example, click Help me get unstuck, and wait for a real Gemini result. | The text becomes one concrete next action, with a short acknowledgment and suggested duration. |
-| 0:45–1:05 | Briefly show the recommendation and select a 5–10 minute focus duration. | The difference between the suggested duration and the user's chosen timer. |
-| 1:05–1:35 | Start Focus, pause, resume, reset, and start again. | The browser-only focus controls. |
-| 1:35–1:50 | Mark the action complete early. | The completion state and the end of the core loop. |
-| 1:50–2:10 | Show the planning docs and run instructions in the prepared public repository or safe source-file view. | How you used the Skill Pack and one thing you actually learned. |
+| 0:00–0:15 | UNSTUCK title and task input. | Intended users and the difficulty beginning an overwhelming task. |
+| 0:15–0:40 | Start microphone, dictate a short generic task, stop, and edit if needed. | Voice is optional; text remains editable and nothing submits automatically. |
+| 0:40–1:00 | Explicitly submit and show a real Gemini recommendation. | One concrete action and a suggested duration. |
+| 1:00–1:30 | Start Focus, pause, resume, then mark complete early. | Short focus controls and completion. |
+| 1:30–2:00 | Show the count, select Continue → Next Step, and show the real follow-up action. | Continuity from the original task and completed actions without starting over. |
+| 2:00–2:20 | Show the public repository README and planning docs. | How you used the Skill Pack and one thing you actually learned. |
 
-You do not need to wait five minutes on camera. The early-completion path shows the complete loop; timer expiry was checked separately. Another AI request is not necessary in the recording. If you choose to demonstrate retry, leave room under three minutes. Do not fabricate a live response or provoke failures just for the video. If Gemini is overloaded, retry later and record a successful real run. Disclose any edited waiting time instead of implying generation was instant.
+Do not wait through a full focus session on camera. Do not fabricate AI output. If Gemini is overloaded, record later when a real request succeeds; disclose any edited waiting time. Stay under three minutes. Review the recording for private information before uploading it publicly, then verify the link without authentication.
 
-Upload the finished recording yourself after reviewing it for private content. Verify that a logged-out viewer can play it. No face camera, hosting deployment, music, or extra feature is needed.
+## Remaining Checklist
 
-## Repository Preparation
+- [x] Original public repository verified and MIT licensed.
+- [x] Progression and voice implemented locally; documentation reflects both.
+- [x] Voice manually tested and approved by the learner.
+- [ ] Learner approves the final combined update and publication audit.
+- [ ] Push only the clean reviewed update; verify public access, all files, and history.
+- [ ] Record and publicly upload the demo; verify the link and record it in spec.md.
+- [ ] Complete the actual Devpost fields and exit survey in the learner’s own words.
+- [ ] Submit personally or explicitly authorize submission after final review.
 
-Proposed public repository name: **UNSTUCK**. Owner: **saffronpeach**. Target: **https://github.com/saffronpeach/UNSTUCK** (not created or published by this agent). Proposed license: MIT. GitHub repository creation, visibility changes, and upload/push all require explicit approval; code and included history become publicly readable.
-
-README setup instructions now use a portable project path, and all three planning documents are present. Runtime configuration uses an ignored .env; .env.example has a blank key. The original local Git history remains intact.
-
-A read-only audit of all four existing development commits and 32 unique blobs found no credential patterns, the current local Gemini key, .env files, learner profile, or unrelated curriculum source. It did identify a personal absolute home path in historical README versions and a local-machine email in commit metadata. Current README paths are portable. Do not publish the original history without discussing those metadata findings.
-
-Prepare the public source from the clean snapshot archive in dist/UNSTUCK-public.zip. It contains the intended current source, tests, technical documentation, planning artifacts, and license, without .git, credentials, personal learner profile, or local tooling. A new repository created from that snapshot gets a fresh GitHub-authored history and leaves the local development repository untouched. This is an export, not a rewrite of local history. Publication of the snapshot still requires explicit approval.
-
-## Remaining Actions
-
-- [x] MVP and hands-on review approved; brief build wrap-up recorded in checklist.md.
-- [x] Automated checks: 37 API tests and 7 timer tests pass; browser regression passed during final build verification.
-- [x] Portable README, planning documents, blank .env.example, and proposed MIT license prepared locally.
-- [x] Development history audited; credential and learner-profile checks pass. Personal path/author metadata findings are documented above.
-- [x] Learner specifies GitHub owner saffronpeach and repository name UNSTUCK.
-- [ ] Learner explicitly approves the public repository, MIT license, and clean-snapshot publication; approval has not been given.
-- [ ] Public GitHub URL created and verified without authentication; add it to spec.md and the Devpost “Try it out” field.
-- [ ] Learner records, reviews, and publicly uploads the demo to YouTube/Vimeo; verify access and add URL to spec.md.
-- [ ] Learner completes submission text, Skill Pack explanation, age eligibility confirmation, and required exit survey using the actual form.
-- [ ] Learner explicitly authorizes final submission, or submits personally and confirms completion.
-
-GitHub target: https://github.com/saffronpeach/UNSTUCK — pending explicit publication approval; public availability not confirmed.
-Demo URL: not recorded yet, confirmed by learner.
-Devpost form: not started yet, confirmed by learner.
-Devpost submission URL/status: pending; not submitted.
-
-## Final Publication Review
-
-Publish only the audited clean source snapshot, not the development Git history or the local project directory wholesale. Target owner/name: saffronpeach/UNSTUCK. Visibility: public. License: MIT. Root contents: FastAPI source, static frontend, tests, requirements, portable README, LICENSE, blank .env.example, .gitignore, and devpost planning/build/shipping documents. No app hosting or Devpost submission is included in this authorization request.
-
-Final content checks cover all archive entries for the actual local key and credential patterns, excluded private files, home-directory paths, and required source/planning/license files. No remote repository creation, visibility change, push, or upload has occurred.
+GitHub URL: https://github.com/saffronpeach/UNSTUCK.
+Demo URL: not recorded/uploaded yet.
+Devpost: not started/submitted; no submission authorization.

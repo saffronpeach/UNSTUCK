@@ -1,7 +1,7 @@
 ---
 doc: checklist
 status: approved
-build_status: complete
+build_status: awaiting_publication_approval
 ---
 
 # Build Checklist
@@ -20,12 +20,37 @@ Build mode: fast — explicitly approved along with build order and local Git in
   Learner check: Configure GEMINI_API_KEY in the ignored .env locally, open http://127.0.0.1:8017, submit an overwhelming task, try another step, run the timer controls, and complete an action early. Inspect the page at a narrow width and try blank input. Report anything broken or confusing and confirm when ready to ship. A real request and a full timer session must be verified before declaring the prototype complete.
   Commit: `Build UNSTUCK AI action and focus workflow`
 
+- [x] **2. Continue the current task after each completed step**
+  Becomes usable: Complete an action, see the completed count, and Continue → Next Step using the original task and ordered session progress. Failures preserve all current state.
+  Why now: Explicitly requested focused extension to the approved MVP; implement locally before any additional publication. No persistent history or dashboard.
+  PRD ref: `prd.md > Continue and Session Progress`, `Completion and Retry`.
+  Spec ref: `spec.md > Implemented Session Progression`, `Step Endpoint`, `Gemini Adapter`, `Data Model`.
+  Build: Extend the existing request contract and Gemini context, keep completed actions in browser memory, add one prominent Continue button and a completed count, preserve retry/timer/error behavior, and reset progress only on a successful fresh task or refresh.
+  Verify (mechanical): 46 API tests and 7 timer tests pass. Browser regression verifies a three-step session, ordered/original context, retry continuity, 503 recovery without losing state, disabled duplicate requests/completion, progress reset, responsive layout, and all timer controls. A genuine Gemini continuation on a generic assignment returned a logical writing action after opening the document and reading its question. Credentials remain server-only; no new publication.
+  Learner check: Restart locally on port 8017, complete a task step, select Continue, and complete two more. Check the count and logical progression; edit the text without submitting to confirm continuing stays with the original task. If Gemini fails, retry Continue and verify the completed state/count survive. Approve the update before any GitHub push.
+  Commit: `Add session-only Continue next-step progression`
+
+- [x] **3. Dictate editable task input with the browser microphone**
+  Becomes usable: A microphone control beside the existing textarea starts/stops native speech recognition, indicates listening, appends editable text, and leaves submission explicit.
+  Why now: Explicitly requested focused accessibility improvement before reviewing the unpublished next version. No new transcription service, backend endpoint, or dependency.
+  PRD ref: `prd.md > Speech-to-Text Input`.
+  Spec ref: `spec.md > Implemented Optional Browser Speech Input`.
+  Build: Add static/speech.js, a visually consistent microphone button and status, browser language/fallback detection, final-phrase deduplication, length handling, permission/service error messages, cancellation, and timer/request integration. Preserve manual input and original task context.
+  Verify (mechanical): Speech fake-engine browser checks pass for start/stop, keyboard access, editable/final text, no auto-submit, language/prefix fallback, permission/device/service errors, cancellation, input limit, progression context, timer integration, and 320/390/1280px layout. Existing progression browser regression, 46 API tests, and 7 timer tests pass. The learner separately reports manually testing the microphone and explicitly approves speech-to-text; fake-engine tests do not stand in for that evidence.
+  Learner check: Hard-refresh localhost:8017 in a supporting browser. Click Use microphone, grant access, speak a short task, and click Stop dictation. Edit the text, confirm no automatic AI request, then explicitly submit. Try denied permission or an unsupported browser and confirm typing remains available. Recheck Continue and focus; approve local updates before publishing.
+  Commit: `Add browser-native speech input with accessible controls`
+
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — learner reports successful real Gemini recommendation, focus interface, and completion state; requested clearer failed-retry feedback.
 - [x] Final kick-the-tires exploration and feedback completed — learner explicitly approves the completed MVP and hands-on review.
 
 ## Final Review
+
+- [x] Speech input manually tested and approved by the learner.
+- [ ] Combined progression/voice publication approval pending after the final documentation, tests, and audit summary.
+
+- [ ] Progression extension final acceptance is included in the combined update review; automated and live continuation checks passed. Do not infer an unreported manual progression test. Earlier MVP approval remains complete.
 
 - [x] Failed-retry refinement accepted in the learner’s explicit approval of the completed MVP and hands-on review.
 
@@ -50,6 +75,12 @@ Reflection: Optional reflection omitted per learner's concise-curriculum prefere
 Activity mode: Brief recap after final revisions; build complete by learner approval. Next: 6-ship, pending publication and submission approvals.
 
 ## Revisions
+
+- Final release preparation: documentation now reflects the complete implemented progression and optional voice flow. Speech manual review is explicitly approved; 46 API tests, 7 timer tests, and both browser suites are rerun. No new features are planned. Prepare one clean update on top of public commit 2888b9d; do not push before explicit publication approval.
+
+- Learner requested browser-native speech input for local review only. Added an optional microphone control without an audio endpoint, transcription API, or runtime dependency. Browser speech processing may use its own online service, disclosed in the input area. Speech and existing progression/timer regressions pass with simulated engines; real microphone recognition requires manual review. The public snapshot and publication repository remain unchanged.
+
+- Learner explicitly requested the minimal Continue extension after publication of the original MVP. This authorizes local implementation only. Scope/PRD/spec now allow an ordered session-only completed-action list and count, original-context progression, and failure preservation. Original public snapshot and dist/publication remain untouched; the update needs separate review and approval before publishing. Mechanical checks and live continuation pass; combined publication review is the remaining approval step. No separate manual progression report is inferred.
 
 - On learner feedback, failed “Try another step” requests now show a neutral result-local notice that the previous recommendation remains usable. Preserve existing result, timer selection, and expiry/completion state; clear the notice on a new request. Browser regressions cover 503/429 failure, result preservation, successful responses, all timer controls, and completion before/after expiry. No new live API calls were needed; learner already confirmed a successful real recommendation. Credential checks confirm the local key is absent from served page/assets and .env is not served or tracked.
 

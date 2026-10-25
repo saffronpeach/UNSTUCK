@@ -23,13 +23,21 @@
     <section class="input-card" aria-label="Find your next step">
       <form id="thought-form" novalidate>
         <div class="field-heading"><label for="thoughts">LET IT OUT</label><span>No need to organize it.</span></div>
-        <textarea id="thoughts" maxlength="2000" rows="5" placeholder="I have so much to do and don't know where to start..." aria-describedby="input-note error"></textarea>
+        <textarea id="thoughts" maxlength="2000" rows="5" placeholder="I have so much to do and don't know where to start..." aria-describedby="input-note voice-status error"></textarea>
+        <div class="voice-controls">
+          <button id="microphone" class="secondary microphone" type="button" aria-label="Start voice input" aria-pressed="false" aria-controls="thoughts" aria-describedby="voice-status voice-privacy">
+            <svg width="16" height="18" viewBox="0 0 16 18" fill="none" aria-hidden="true"><rect x="5" y="1" width="6" height="10" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 8v1a6 6 0 0 0 12 0V8M8 15v2M5 17h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <span>Use microphone</span>
+          </button>
+          <p id="voice-status" class="voice-help" role="status">Speak or type—whichever feels easier.</p>
+        </div>
+        <p id="voice-privacy" class="voice-help">Your browser may use an online speech service. Text is submitted only when you choose.</p>
         <div class="input-bottom"><span id="input-note">A messy thought is a perfectly good start.</span><span id="character-count" aria-hidden="true">0 / 2000</span></div>
         <button id="submit" type="submit" class="primary">Help me get unstuck <span aria-hidden="true">↗</span></button>
       </form>
       <p class="privacy">No accounts. No saved history. Just this moment.<br><span>Your thoughts are sent to Gemini to find your next step.</span></p>
     </section>
-    <p id="loading" class="status" role="status" hidden>Finding a small place to begin<span class="loading-dots" aria-hidden="true">…</span></p>
+    <p id="loading" class="status" role="status" hidden>Finding your next small step<span class="loading-dots" aria-hidden="true">…</span></p>
     <p id="error" class="error" role="alert" hidden></p>
     <section id="result" class="result-card" aria-labelledby="action-heading" hidden>
       <div class="section-kicker"><span class="spark" aria-hidden="true">✧</span> YOUR NEXT SMALL STEP</div>
@@ -50,6 +58,8 @@
         <div class="timer-controls"><button id="pause" class="secondary" type="button">Pause</button><button id="reset" class="text-button" type="button">Reset</button></div>
       </section>
       <p id="completion" class="completion" role="status" hidden></p>
+      <p id="progress" class="recommendation" role="status">0 steps completed</p>
+      <button id="continue" class="primary" type="button" hidden>Continue → Next Step</button>
       <div class="action-controls"><button id="complete" class="secondary" type="button">Mark complete <span aria-hidden="true">✓</span></button><button id="retry" class="text-button" type="button">Try another step <span aria-hidden="true">↻</span></button></div>
       <p id="retry-notice" class="retry-notice" role="status" hidden></p>
     </section>

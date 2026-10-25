@@ -120,12 +120,76 @@ def run():
         page.clock.fast_forward(100000)
         expect(page.locator('#countdown')).to_have_text(snapshot)
         expect(page.locator('#completion')).to_have_text('One small step done. That counts.')
+        expect(page.locator('#progress')).to_have_text('1 step completed')
+        expect(page.locator('#continue')).to_be_visible()
+        # Continue preserves completed progress on failure and sends full task context.
+        task_input = 'This edited text is a new thought, not the retry context.'
+        page.locator('#thoughts').fill('An unsent edit must not replace the original task.')
+        page.unroute('**/api/step')
+        progress_payloads = []
+        def fail_continue(route):
+            progress_payloads.append(route.request.post_data_json)
+            route.fulfill(status=503, json={'detail': 'Gemini is temporarily unavailable.'})
+        page.route('**/api/step', fail_continue)
+        page.locator('#continue').click()
+        expect(page.locator('#retry-notice')).to_contain_text('Your completed steps are kept for this session.')
+        expect(page.locator('#continue')).to_be_enabled()
+        expect(page.locator('#progress')).to_have_text('1 step completed')
+        expect(page.locator('#action-heading')).to_have_text(FIRST['action'])
+        expect(page.locator('#completion')).to_have_text('One small step done. That counts.')
+        assert progress_payloads[-1] == {'thoughts': task_input, 'previous_action': FIRST['action'],
+            'completed_actions': [FIRST['action']], 'mode': 'continue'}
+        page.unroute('**/api/step')
+        next_step = {**FIRST, 'action': 'Write a rough answer to the first question.'}
+        alternate = {**FIRST, 'action': 'List two ideas for answering the first question.'}
+        later_step = {**FIRST, 'action': 'Turn your two ideas into a rough answer.'}
+        def progress_response(result):
+            def respond_progress(route):
+                progress_payloads.append(route.request.post_data_json)
+                route.fulfill(json=result)
+            return respond_progress
+        held_progress = []
+        page.route('**/api/step', lambda route: held_progress.append(route))
+        page.locator('#continue').click()
+        expect(page.locator('#continue')).to_be_disabled()
+        expect(page.locator('#complete')).to_be_disabled()
+        assert len(held_progress) == 1
+        progress_response(next_step)(held_progress[0])
+        expect(page.locator('#action-heading')).to_have_text(next_step['action'])
+        expect(page.locator('#continue')).to_be_hidden()
+        expect(page.locator('#completion')).to_be_hidden()
+        expect(page.locator('#progress')).to_have_text('1 step completed')
+        expect(page.locator('#duration')).to_have_value('7')
+        expect(page.locator('#retry-notice')).to_be_hidden()
+        page.unroute('**/api/step')
+        page.route('**/api/step', progress_response(alternate))
+        page.locator('#retry').click()
+        expect(page.locator('#action-heading')).to_have_text(alternate['action'])
+        assert progress_payloads[-1]['mode'] == 'retry'
+        assert progress_payloads[-1]['completed_actions'] == [FIRST['action']]
+        assert progress_payloads[-1]['previous_action'] == next_step['action']
+        page.locator('#complete').click()
+        expect(page.locator('#progress')).to_have_text('2 steps completed')
+        # A disabled completion button cannot count the same action twice.
+        page.locator('#complete').evaluate('(button) => button.click()')
+        expect(page.locator('#progress')).to_have_text('2 steps completed')
+        page.unroute('**/api/step')
+        page.route('**/api/step', progress_response(later_step))
+        page.locator('#continue').click()
+        expect(page.locator('#action-heading')).to_have_text(later_step['action'])
+        assert progress_payloads[-1]['completed_actions'] == [FIRST['action'], alternate['action']]
+        assert progress_payloads[-1]['previous_action'] == alternate['action']
+        assert progress_payloads[-1]['thoughts'] == task_input
+        page.locator('#complete').click()
+        expect(page.locator('#progress')).to_have_text('3 steps completed')
+        page.screenshot(path='/tmp/unstuck-progression.png', full_page=True)
         # User/model text is rendered inert, not interpreted as HTML.
         page.unroute('**/api/step')
         markup = '<img src=x onerror="window.bad=true">'
         page.route('**/api/step', lambda route: route.fulfill(json={**FIRST, 'action': markup}))
         page.locator('#submit').click()
         expect(page.locator('#action-heading')).to_have_text(markup)
+        expect(page.locator('#progress')).to_have_text('0 steps completed')
         assert page.locator('#action-heading img').count() == 0
         # Keep screenshots outside project source; check all major states fit mobile.
         for width in [320, 390, 1280]:
@@ -141,9 +205,15 @@ def run():
         page.reload()
         expect(page.locator('#thoughts')).to_have_value('')
         expect(page.locator('#result')).to_be_hidden()
+        page.locator('#thoughts').fill('Start a fresh session.')
+        with page.expect_request('**/api/step') as fresh_request:
+            page.locator('#submit').click()
+        assert fresh_request.value.post_data_json['completed_actions'] == []
+        assert fresh_request.value.post_data_json['mode'] == 'suggest'
+        expect(page.locator('#progress')).to_have_text('0 steps completed')
         assert not problems, problems
         browser.close()
-        print('Browser checks passed: validation, intercepted configuration error/generation/retry, loading, preserved context/error state, full simulated timer session, early completion, safe rendering, refresh reset, and 320/390/1280px layout. No live Gemini call performed.')
+        print('Browser checks passed: three-step progression, ordered context, failed-Continue recovery, retry continuity, duplicate completion prevention, progress reset, validation/loading, full simulated timer lifecycle, completion before/after expiry, safe rendering, and responsive layout. All browser AI requests intercepted.')
 
 
 if __name__ == '__main__':

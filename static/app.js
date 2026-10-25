@@ -1,8 +1,10 @@
 import { FocusTimer } from './timer.js';
+import { setupSpeechInput } from './speech.js';
 const $ = (id) => document.getElementById(id);
 const timer = new FocusTimer();
 let current = null;
 let originalThoughts = '';
+let completedActions = [];
 let busy = false;
 let timerVisible = false;
 let interval = null;
@@ -18,9 +20,14 @@ function render() {
   const display = timer.display;
   const phase = timer.phase;
   const locked = ['running', 'paused'].includes(phase);
-  $('submit').disabled = busy || locked;
-  $('retry').disabled = busy || locked;
+  voice.setDisabled(busy || locked);
+  $('submit').disabled = busy || locked || voice.active;
+  $('retry').disabled = busy || locked || voice.active;
   $('complete').disabled = busy || phase === 'complete';
+  $('continue').hidden = phase !== 'complete';
+  $('continue').disabled = busy || voice.active;
+  const progressText = `${completedActions.length} ${completedActions.length === 1 ? 'step' : 'steps'} completed`;
+  if ($('progress').textContent !== progressText) $('progress').textContent = progressText;
   $('duration').disabled = busy || phase !== 'ready';
   $('start').disabled = busy;
   $('pause').disabled = busy;
@@ -48,9 +55,12 @@ function startInterval() {
   if (interval === null) interval = setInterval(render, 200);
   render();
 }
-async function requestStep(retry = false) {
-  if (busy || ['running', 'paused'].includes(timer.phase)) return;
-  const thoughts = retry ? originalThoughts : $('thoughts').value.trim();
+async function requestStep(mode = 'suggest') {
+  if (busy || voice.active || ['running', 'paused'].includes(timer.phase)) return;
+  const continuing = mode === 'continue';
+  const sameTask = mode !== 'suggest';
+  if (sameTask && (!current || (continuing && timer.phase !== 'complete'))) return;
+  const thoughts = sameTask ? originalThoughts : $('thoughts').value.trim();
   if (!thoughts || thoughts.length > 2000) {
     error(!thoughts ? 'Tell us a little about what’s keeping you stuck.' : 'Keep your thoughts under 2,000 characters for this step.');
     $('thoughts').focus();
@@ -64,7 +74,8 @@ async function requestStep(retry = false) {
   try {
     const response = await fetch('/api/step', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
-      body: JSON.stringify({ thoughts, previous_action: retry ? current.action : null }),
+      body: JSON.stringify({ thoughts, previous_action: sameTask ? current.action : null,
+        completed_actions: sameTask ? [...completedActions] : [], mode }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Check your thoughts and try again.');
@@ -73,6 +84,7 @@ async function requestStep(retry = false) {
         data.recommended_minutes < 5 || data.recommended_minutes > 10) throw new Error('We couldn’t get a usable step. Please try again.');
     current = data;
     originalThoughts = thoughts;
+    if (!sameTask) completedActions = [];
     $('acknowledgment').textContent = data.acknowledgment;
     $('action-heading').textContent = data.action;
     $('recommendation').textContent = `Suggested focus: ${data.recommended_minutes} minutes · one small beginning`;
@@ -84,8 +96,10 @@ async function requestStep(retry = false) {
   } catch (err) {
     const message = err.name === 'AbortError' ? 'That took longer than expected. Please try again.' :
       err instanceof TypeError ? 'We couldn’t connect. Check your connection and try again.' : err.message;
-    if (retry && current) {
-      $('retry-notice').textContent = `Couldn't get another step. Your previous step is unchanged and ready to use. ${message}`;
+    if (sameTask && current) {
+      $('retry-notice').textContent = continuing
+        ? `Couldn't get the next step. Your completed steps are kept for this session. Try Continue again. ${message}`
+        : `Couldn't get another step. Your previous step is unchanged and ready to use. ${message}`;
       $('retry-notice').hidden = false;
     } else {
       error(message);
@@ -96,13 +110,20 @@ async function requestStep(retry = false) {
     render();
   }
 }
+const voice = setupSpeechInput({ input: $('thoughts'), button: $('microphone'), status: $('voice-status'), onStateChange: render });
 $('thought-form').addEventListener('submit', (event) => { event.preventDefault(); requestStep(); });
 $('thoughts').addEventListener('input', () => { $('character-count').textContent = `${$('thoughts').value.length} / 2000`; });
-$('retry').addEventListener('click', () => requestStep(true));
+$('retry').addEventListener('click', () => requestStep('retry'));
+$('continue').addEventListener('click', () => requestStep('continue'));
 $('duration').addEventListener('change', () => { timer.setMinutes(Number($('duration').value)); render(); });
-$('start').addEventListener('click', () => { timerVisible = true; timer.start(); startInterval(); });
+$('start').addEventListener('click', () => { voice.stop(); timerVisible = true; timer.start(); startInterval(); });
 $('pause').addEventListener('click', () => { timer.phase === 'paused' ? timer.start() : timer.pause(); startInterval(); });
 $('reset').addEventListener('click', () => { timer.reset(); render(); });
-$('complete').addEventListener('click', () => { timer.complete(); render(); });
+$('complete').addEventListener('click', () => {
+  if (busy || !current || timer.phase === 'complete') return;
+  completedActions.push(current.action);
+  timer.complete();
+  render();
+});
 document.addEventListener('visibilitychange', render);
 render();

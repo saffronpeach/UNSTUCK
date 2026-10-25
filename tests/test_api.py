@@ -23,9 +23,45 @@ def test_success_and_retry(monkeypatch):
     mock = AsyncMock(return_value=ai.Step(**GOOD))
     monkeypatch.setattr(main, "generate_step", mock)
     assert client.post('/api/step', json={"thoughts": "  assignments  "}).json() == GOOD
-    mock.assert_awaited_with("assignments", None)
+    mock.assert_awaited_with("assignments", None, [], "suggest")
     client.post('/api/step', json={"thoughts": "assignments", "previous_action": GOOD['action']})
-    mock.assert_awaited_with("assignments", GOOD['action'])
+    mock.assert_awaited_with("assignments", GOOD['action'], [], "suggest")
+
+
+def test_progression_context_reaches_generator(monkeypatch):
+    completed = ['Open the assignment.', 'Read the first question.']
+    mock = AsyncMock(return_value=ai.Step(**GOOD))
+    monkeypatch.setattr(main, 'generate_step', mock)
+    response = client.post('/api/step', json={'thoughts': '  Finish my assignment  ',
+        'previous_action': completed[-1], 'completed_actions': completed, 'mode': 'continue'})
+    assert response.status_code == 200
+    mock.assert_awaited_with('Finish my assignment', completed[-1], completed, 'continue')
+
+
+@pytest.mark.parametrize('extra', [
+    {'mode': 'continue'},
+    {'mode': 'continue', 'completed_actions': ['Read the question.'], 'previous_action': 'Unrelated context.'},
+    {'mode': 'unknown'}, {'completed_actions': [' ']},
+    {'completed_actions': ['x' * 501]}, {'completed_actions': ['done'] * 101},
+])
+def test_invalid_progress_context_does_not_call_gemini(extra, monkeypatch):
+    mock = AsyncMock()
+    monkeypatch.setattr(main, 'generate_step', mock)
+    response = client.post('/api/step', json={'thoughts': 'assignments', **extra})
+    assert response.status_code == 422
+    mock.assert_not_called()
+
+
+def test_progression_provider_failure_is_recoverable(monkeypatch):
+    mock = AsyncMock(side_effect=ai.GenerationError(503, 'Please try again shortly.'))
+    monkeypatch.setattr(main, 'generate_step', mock)
+    payload = {'thoughts': 'assignments', 'mode': 'continue',
+               'previous_action': 'Open the assignment.', 'completed_actions': ['Open the assignment.']}
+    assert client.post('/api/step', json=payload).status_code == 503
+    mock.side_effect = None
+    mock.return_value = ai.Step(**GOOD)
+    assert client.post('/api/step', json=payload).status_code == 200
+    assert mock.await_args_list[0] == mock.await_args_list[1]
 
 
 def test_missing_key(monkeypatch):
@@ -112,6 +148,22 @@ def test_identical_retry(monkeypatch):
     assert response.status_code == 502
 
 
+def test_completed_actions_are_sent_in_order_and_not_repeated(monkeypatch):
+    import json
+    completed = ['Open the assignment.', 'Read the first instruction.']
+    call = fake_provider(monkeypatch, json.dumps({**GOOD, 'action': 'Write a rough answer to the first question.'}))
+    asyncio.run(ai.generate_step('assignments', completed[-1], completed, 'continue'))
+    content = json.loads(call.await_args.kwargs['contents'])
+    assert content == {'thoughts': 'assignments', 'previous_action': completed[-1],
+                       'completed_actions': completed, 'mode': 'continue'}
+    assert 'next logical small action' in call.await_args.kwargs['config'].system_instruction
+    call.return_value = SimpleNamespace(text=json.dumps({**GOOD, 'action': ' OPEN   THE ASSIGNMENT! '}))
+    with pytest.raises(ai.GenerationError) as caught:
+        asyncio.run(ai.generate_step('assignments', completed[-1], completed, 'continue'))
+    assert caught.value.status == 502
+    assert 'completed step' in caught.value.message
+
+
 @pytest.mark.parametrize('failure,status', [(TimeoutError('private information'), 504), (httpx.ReadTimeout('private information'), 504), (httpx.ConnectError('private information'), 503), (ai.errors.ClientError(429, {'error': {'message': 'private information'}}), 429), (ai.errors.ClientError(403, {'error': {'message': 'private information'}}), 503), (ai.errors.ServerError(504, {'error': {'message': 'private information'}}), 504)])
 def test_sanitized_provider_failures(monkeypatch, failure, status):
     fake_provider(monkeypatch, failure=failure)
@@ -136,5 +188,5 @@ def test_page_and_assets():
     page = client.get('/')
     assert page.status_code == 200
     assert "What's keeping" in page.text
-    for name in ['app.js', 'timer.js', 'styles.css']:
+    for name in ['app.js', 'timer.js', 'speech.js', 'styles.css']:
         assert client.get('/static/' + name).status_code == 200

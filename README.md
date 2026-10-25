@@ -1,8 +1,8 @@
 # UNSTUCK
 
-**One step at a time.** A small, local web application that turns overwhelming thoughts into one concrete action using Gemini, then helps you begin with a short focus timer.
+**One step at a time.** A small, local web application that turns overwhelming thoughts into one concrete action using Gemini, helps you focus, and offers a logical next step after each completed action. Type your thoughts or use optional browser voice input.
 
-Built with FastAPI, plain HTML/CSS/JavaScript, and server-side Google Gemini. No accounts, database, task history, or persistent browser storage.
+Built with FastAPI, plain HTML/CSS/JavaScript, and server-side Google Gemini. No accounts, database, persistent task history, or persistent browser storage. Completed actions stay in memory only for the current task, enabling Continue → Next Step.
 
 ## Run locally
 
@@ -30,13 +30,22 @@ The default model is `gemini-3.1-flash-lite`. Upstream high-demand 503 responses
 
 ## Try the complete workflow
 
-1. Enter an overwhelming task and select **Help me get unstuck**. Expect a short acknowledgment, one action, and a suggested duration.
+1. Type an overwhelming task, or use the microphone and stop dictation, then select **Help me get unstuck**. Expect a short acknowledgment, one action, and a suggested duration.
 2. Select **Try another step**. It should offer a different action for the original input, even if you edit the text field without resubmitting.
 3. Choose 5–10 minutes (default 7), select **Start Focus**, and try pause, resume, and reset. New generation is disabled while focus is running or paused; reset unlocks it.
 4. Complete early to stop the timer and see a positive message. In a separate session, let the timer finish and check **You did it! Every small step counts.**, then mark complete or retry.
-5. Try blank input, a narrow browser window, and keyboard controls. Refresh clears all app state.
+5. After completing an action, select **Continue → Next Step**. The next action uses your original task and completed steps. Complete more actions to increase the progress count. Retry preserves that progress; a failed next-step request keeps your state and lets you try Continue again. A successful new main-form submission starts a fresh task.
+6. Try blank input, a narrow browser window, and keyboard controls. Refresh clears all app state.
 
-Gemini's recommended duration is advisory; change the timer selection yourself if desired. Only the selected duration drives the timer. No notifications or audio are sent. Thoughts are sent to Google for generation; the app does not save them. Provider processing follows Google's policies.
+Gemini's recommended duration is advisory; change the timer selection yourself if desired. Only the selected duration drives the timer. UNSTUCK does not send notifications or upload audio to its backend. On explicit generation, retry, or Continue requests, task text and relevant completed actions are sent to Gemini; the app keeps them only in the current browser session. Optional voice input may use the browser’s own speech service. Provider processing follows the respective providers’ policies.
+
+## Voice input
+
+Select **Use microphone** beside the task input, allow microphone access, and speak. The button changes to **Stop dictation** and a visible listening message appears. Click again to stop, edit the recognized text if needed, and explicitly select **Help me get unstuck** to submit. Final recognized phrases append to your current text without replacing manual edits; nothing is submitted automatically.
+
+Voice input uses browser-native SpeechRecognition or webkitSpeechRecognition, with the browser language and an en-US fallback. Support and microphone permissions depend on the browser; unsupported browsers keep manual typing available. No transcription API key, audio upload endpoint, or new backend service is added. Your browser may use its own online speech service; recognition is not guaranteed to be offline. [Web Speech API reference](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition).
+
+If permission is denied, allow microphone access in the browser's site settings and try again. Device, network, language, or no-speech errors preserve your text. Starting focus stops dictation; generation controls are disabled until dictation stops. Use the local app on http://127.0.0.1:8017 for manual testing.
 
 ## Automated checks
 
@@ -53,16 +62,19 @@ Optional repeatable browser verification (requires local Google Chrome and a run
 ```sh
 python -m pip install playwright==1.64.1
 python tests/browser_check.py
+python tests/speech_browser_check.py
 ```
 
-The browser check intercepts all AI requests explicitly so it never spends API quota. It checks the UI, retries, validation/errors, loading, a full simulated focus session, early completion, safe text rendering, and 320/390/1280px layouts. Screenshots go to `/tmp/unstuck-desktop.png` and `/tmp/unstuck-mobile.png`. This is test-only tooling, not part of the application or live AI evidence.
+The workflow browser check intercepts all AI requests explicitly so it never spends API quota. It checks three-step progression, ordered original-task context, retry and Continue failures, progress reset, validation/loading, a full simulated focus session, early/late completion, safe text rendering, and 320/390/1280px layouts. Screenshots go to `/tmp/unstuck-desktop.png` and `/tmp/unstuck-mobile.png`. This is test-only tooling, not part of the application or live AI evidence.
 
 ## Submission
 
-The MVP and final hands-on review are approved. Real Gemini generation was confirmed; intermittent upstream service availability remains a dependency limitation. The Devpost submission requires a short demo video and public GitHub repository. A local recording can show real generation, another step, focus starting, and early completion. Hosting is optional. Never publish `.env` or personal learner context.
+The MVP and final hands-on review are approved. Real Gemini generation was confirmed; intermittent upstream service availability remains a dependency limitation. The Devpost submission requires a short demo video and public GitHub repository. A local recording can show optional dictation, real generation, focus starting, completion, and Continue returning the next action. Hosting is optional. Never publish `.env` or personal learner context.
 
 ## Planning and license
 
-The required planning documents are [scope](devpost/scope.md), [PRD](devpost/prd.md), and [technical spec](devpost/spec.md). The build and verification record is in [the checklist](devpost/checklist.md). The application was created for Build With AI: Basics using the Devpost Learn Skill Pack and AI coding assistance. Runtime dependencies are listed in requirements.txt; the project uses no RUMI source.
+The required planning documents are [scope](devpost/scope.md), [PRD](devpost/prd.md), and [technical spec](devpost/spec.md). The build and verification record is in [the checklist](devpost/checklist.md). The application was created for Build With AI: Basics using the Devpost Learn Skill Pack and AI coding assistance. Runtime dependencies are listed in requirements.txt.
 
 MIT license; see [LICENSE](LICENSE). Third-party dependencies retain their own licenses. No Gemini API credentials are distributed.
+
+The speech regression uses a simulated recognition engine to verify start/stop, editable text, no auto-submit, language fallback, permission/service failures, cancellation, input length, and timer/progression compatibility. The microphone feature has also been manually tested and approved; support and recognition accuracy can still vary by browser and language.
