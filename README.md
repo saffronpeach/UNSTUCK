@@ -4,6 +4,9 @@
 
 Built with FastAPI, plain HTML/CSS/JavaScript, and server-side Google Gemini. No accounts, database, persistent task history, or persistent browser storage. Completed actions stay in memory only for the current task, enabling Continue → Next Step.
 
+***Demo**
+Watch UNSTUCK in action: https://youtu.be/xyY3zig7jkg
+
 ## Run locally
 
 Requires Python 3.11+ and internet access for Gemini. Tested with Python 3.14.7. All commands run inside this project; no other project needs to change.
